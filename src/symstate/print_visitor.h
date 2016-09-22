@@ -29,52 +29,52 @@ public:
 
     switch (bv->type()) {
     case SymBitVector::AND:
-      os_ << "(and ";
+      os_ << "(bvand ";
       break;
     case SymBitVector::CONCAT:
       os_ << "(concat ";
       break;
     case SymBitVector::DIV:
-      os_ << "(div ";
+      os_ << "(bvudiv ";
       break;
     case SymBitVector::MINUS:
-      os_ << "(minus ";
+      os_ << "(bvsub ";
       break;
     case SymBitVector::MOD:
-      os_ << "(mod ";
+      os_ << "(unknown-mod ";
       break;
     case SymBitVector::MULT:
-      os_ << "(mult ";
+      os_ << "(bvmul ";
       break;
     case SymBitVector::OR:
-      os_ << "(or ";
+      os_ << "(bvor ";
       break;
     case SymBitVector::PLUS:
-      os_ << "(plus ";
+      os_ << "(bvadd ";
       break;
     case SymBitVector::ROTATE_LEFT:
-      os_ << "(rol ";
+      os_ << "(unknown-rol ";
       break;
     case SymBitVector::ROTATE_RIGHT:
-      os_ << "(ror ";
+      os_ << "(unknown-ror ";
       break;
     case SymBitVector::SHIFT_LEFT:
-      os_ << "(<< ";
+      os_ << "(bvshl ";
       break;
     case SymBitVector::SHIFT_RIGHT:
-      os_ << "(>> ";
+      os_ << "(bvlshr ";
       break;
     case SymBitVector::SIGN_DIV:
-      os_ << "(s_div ";
+      os_ << "(bvsdiv ";
       break;
     case SymBitVector::SIGN_MOD:
-      os_ << "(s_mod ";
+      os_ << "(bvsmod ";
       break;
     case SymBitVector::SIGN_SHIFT_RIGHT:
-      os_ << "(s_shr ";
+      os_ << "(bvashr ";
       break;
     case SymBitVector::XOR:
-      os_ << "(xor ";
+      os_ << "(bvxor ";
       break;
     default:
       os_ << "(UNHANDLED_BINOP" << bv->type() << " ";
@@ -92,16 +92,16 @@ public:
 
     switch (b->type()) {
     case SymBool::AND:
-      os_ << "(and ";
+      os_ << "(&& ";
       break;
     case SymBool::IFF:
-      os_ << "(== ";
+      os_ << "(<=> ";
       break;
     case SymBool::IMPLIES:
-      os_ << "(implies ";
+      os_ << "(=> ";
       break;
     case SymBool::OR:
-      os_ << "(or ";
+      os_ << "(|| ";
       break;
     case SymBool::XOR:
       os_ << "(xor ";
@@ -119,20 +119,22 @@ public:
 
 
   void visit_unop(const SymBitVectorUnop * const bv) {
-
+    os_ << "(";
     switch (bv->type()) {
     case SymBitVector::NOT:
-      os_ << "!";
+      os_ << "bvnot";
       break;
     case SymBitVector::U_MINUS:
-      os_ << "-";
+      os_ << "bvneg";
       break;
     default:
       os_ << "UNHANDLED_UNOP" << bv->type() << " ";
       assert(false);
     }
 
+    os_ << " ";
     (*this)(bv->bv_);
+    os_ << ")";
   }
 
 
@@ -140,23 +142,31 @@ public:
 
     switch (b->type()) {
     case SymBool::EQ:
-      os_ << "(== ";
+      os_ << "(bveq ";
       break;
     case SymBool::GE:
+      os_ << "(bvuge ";
+      break;
     case SymBool::SIGN_GE:
-      os_ << "(>= ";
+      os_ << "(bvsge ";
       break;
     case SymBool::GT:
+      os_ << "(bvugt ";
+      break;
     case SymBool::SIGN_GT:
-      os_ << "(> ";
+      os_ << "(bvsgt ";
       break;
     case SymBool::LE:
+      os_ << "(bvule ";
+      break;
     case SymBool::SIGN_LE:
-      os_ << "(<= ";
+      os_ << "(bvsle ";
       break;
     case SymBool::LT:
+      os_ << "(bvult ";
+      break;
     case SymBool::SIGN_LT:
-      os_ << "(< ";
+      os_ << "(bvslt ";
       break;
     default:
       os_ << "(UNHANDLED_COMPARE" << b->type() << " ";
@@ -172,13 +182,14 @@ public:
 
   /** Visit a bit-vector constant */
   void visit(const SymBitVectorConstant * const bv) {
-    os_ << "<0x" << std::hex << bv->constant_ << "|" << std::dec << bv->size_ << ">";
+    os_ << "(bv " << std::dec << bv->constant_ << " " << bv->size_ << ")";
   }
 
   /** Visit a bit-vector extract */
   void visit(const SymBitVectorExtract * const bv) {
+    os_ << "(extract " << std::dec << bv->high_bit_ << " " << bv->low_bit_ << " ";
     (*this)(bv->bv_);
-    os_ << "[" << std::dec << bv->high_bit_ << ":" << bv->low_bit_ << "]";
+    os_ << ")";
   }
 
   /** Visit a bit-vector function */
@@ -214,7 +225,7 @@ public:
 
   /** Visit a bit-vector variable */
   void visit(const SymBitVectorVar * const bv) {
-    os_ << "<" << bv->name_ << "|" << bv->size_ << ">";
+    os_ << bv->name_;
   }
 
   /** Visit an array lookup */
@@ -237,7 +248,7 @@ public:
 
   /** Visit a boolean FALSE */
   void visit(const SymBoolFalse * const b) {
-    os_ << "FALSE";
+    os_ << "#f";
   }
 
   /** Visit a boolean NOT */
@@ -249,12 +260,12 @@ public:
 
   /** Visit a boolean TRUE */
   void visit(const SymBoolTrue * const b) {
-    os_ << "TRUE";
+    os_ << "#t";
   }
 
   /** Visit a boolean VAR */
   void visit(const SymBoolVar * const b) {
-    os_ << "<" << b->name_ << ">";
+    os_ << b->name_;
   }
 
   /** Visit an array STORE */
@@ -281,3 +292,4 @@ private:
 } //namespace
 
 #endif
+
