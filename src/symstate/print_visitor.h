@@ -218,9 +218,9 @@ public:
 
   /** Visit a bit-vector sign-extend */
   void visit(const SymBitVectorSignExtend * const bv) {
-    os_ << "(sign-extend-" << bv->size_ << " ";
+    os_ << "(sign-extend ";
     (*this)(bv->bv_);
-    os_ << ")";
+    os_ << " (bitvector " << bv->size_ << "))";
   }
 
   /** Visit a bit-vector variable */
