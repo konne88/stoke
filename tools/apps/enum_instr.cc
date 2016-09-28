@@ -288,6 +288,43 @@ bool instr_uses_memory(const x64asm::Opcode& opcode) {
   return false;
 }
 
+  // IMM_8,
+  // IMM_16,
+  // IMM_32,
+  // IMM_64,
+  // MM,
+  // R_8,
+  // RH,
+  // AL,
+  // CL,
+  // R_16,
+  // AX,
+  // DX,
+  // R_32,
+  // EAX,
+  // R_64,
+  // RAX,
+  // XMM,
+  // XMM_0,
+  // YMM
+
+bool want_to_handle(const x64asm::Opcode& opcode) {
+  Instruction instr(opcode);
+  for (size_t i = 0; i < instr.arity(); i++) {
+    switch (instr.type(i)) {
+    case Type::EAX:
+    case Type::R_32:
+    case Type::ZERO:
+    case Type::ONE:
+    case Type::THREE:
+      break;
+    default:
+      return false;
+    }
+  }
+  return true;
+}
+
 
 int main(int argc, char** argv) {
 
@@ -297,11 +334,16 @@ int main(int argc, char** argv) {
 
   ComboHandler ch;
 
+  cout << "compare=/src/racket/compare.rkt" << endl << endl;
+
   for (size_t i = 1; i < X64ASM_NUM_OPCODES; ++i) {
     Opcode opcode = (Opcode)i;
 
     if (instr_uses_memory(opcode)) continue; // ignore memory for now
     if (instr_uses_label(opcode)) continue; // ignore labels
+
+    // we ignore some more instructions for now
+    if (!want_to_handle(opcode)) continue;
 
     Instruction instr = get_instruction(opcode);
 
@@ -310,19 +352,18 @@ int main(int argc, char** argv) {
       continue;
     }
 
-    Assembler assm;
-    Function f;
-    assm.start(f);
+    // Assembler assm;
+    // Function f;
+    // assm.start(f);
+    // assm.assemble(instr);
 
-    assm.assemble(instr);
-
-    cout << instr << endl;
-    cout << "  assembled instruction:";
-    uint8_t* data = (uint8_t*) f.data();
-    for (size_t i = 0; i < f.size(); i++) {
-      cout << " " << setfill('0') << setw(2) << hex << (uint32_t)data[i];
-    }
-    cout << endl;
+    cout << "$compare \"" << instr << "\" \"" << opcode_write_intel(opcode) << "\"" << endl;
+    // cout << "  assembled instruction:";
+    // uint8_t* data = (uint8_t*) f.data();
+    // for (size_t i = 0; i < f.size(); i++) {
+    //   cout << " " << setfill('0') << setw(2) << hex << (uint32_t)data[i];
+    // }
+    // cout << endl;
   }
 
   return 0;
