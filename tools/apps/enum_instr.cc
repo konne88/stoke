@@ -347,6 +347,8 @@ int main(int argc, char** argv) {
 
     Instruction instr = get_instruction(opcode);
 
+    if (instr.is_memory_dereference()) continue; // also ignore implicit memory uses
+
     if (ch.get_support(instr) == Handler::SupportLevel::NONE) {
       // skip instructions we don't have a formula for in STOKE
       continue;
