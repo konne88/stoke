@@ -270,10 +270,10 @@ bool instr_uses_memory(const x64asm::Opcode& opcode) {
     case Type::FAR_PTR_16_64:
     case Type::REL_32:
     case Type::REL_8:
-    case Type::SREG: 
-    case Type::FS: 
-    case Type::GS: 
-    case Type::ST: 
+    case Type::SREG:
+    case Type::FS:
+    case Type::GS:
+    case Type::ST:
     case Type::ST_0:
     case Type::PREF_66:
     case Type::MOFFS_8:
@@ -288,25 +288,25 @@ bool instr_uses_memory(const x64asm::Opcode& opcode) {
   return false;
 }
 
-  // IMM_8,
-  // IMM_16,
-  // IMM_32,
-  // IMM_64,
-  // MM,
-  // R_8,
-  // RH,
-  // AL,
-  // CL,
-  // R_16,
-  // AX,
-  // DX,
-  // R_32,
-  // EAX,
-  // R_64,
-  // RAX,
-  // XMM,
-  // XMM_0,
-  // YMM
+// IMM_8,
+// IMM_16,
+// IMM_32,
+// IMM_64,
+// MM,
+// R_8,
+// RH,
+// AL,
+// CL,
+// R_16,
+// AX,
+// DX,
+// R_32,
+// EAX,
+// R_64,
+// RAX,
+// XMM,
+// XMM_0,
+// YMM
 
 bool want_to_handle(const x64asm::Opcode& opcode) {
   Instruction instr(opcode);
