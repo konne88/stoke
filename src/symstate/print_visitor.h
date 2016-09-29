@@ -41,7 +41,7 @@ public:
       os_ << "(bvsub ";
       break;
     case SymBitVector::MOD:
-      os_ << "(unknown-mod ";
+      os_ << "(bvsmod ";
       break;
     case SymBitVector::MULT:
       os_ << "(bvmul ";
@@ -53,10 +53,10 @@ public:
       os_ << "(bvadd ";
       break;
     case SymBitVector::ROTATE_LEFT:
-      os_ << "(unknown-rol ";
+      os_ << "(bvrol ";
       break;
     case SymBitVector::ROTATE_RIGHT:
-      os_ << "(unknown-ror ";
+      os_ << "(bvror ";
       break;
     case SymBitVector::SHIFT_LEFT:
       os_ << "(bvshl ";
