@@ -41,7 +41,7 @@ public:
       os_ << "(bvsub ";
       break;
     case SymBitVector::MOD:
-      os_ << "(unknown-mod ";
+      os_ << "(bvsmod ";
       break;
     case SymBitVector::MULT:
       os_ << "(bvmul ";
@@ -53,10 +53,10 @@ public:
       os_ << "(bvadd ";
       break;
     case SymBitVector::ROTATE_LEFT:
-      os_ << "(unknown-rol ";
+      os_ << "(bvrol ";
       break;
     case SymBitVector::ROTATE_RIGHT:
-      os_ << "(unknown-ror ";
+      os_ << "(bvror ";
       break;
     case SymBitVector::SHIFT_LEFT:
       os_ << "(bvshl ";
@@ -194,12 +194,12 @@ public:
 
   /** Visit a bit-vector function */
   void visit(const SymBitVectorFunction * const bv) {
-    os_ << bv->f_.name << "(";
+    os_ << "(uninterpreted-" << bv->f_.name << " ";
 
     for (size_t i = 0; i < bv->args_.size(); ++i) {
       (*this)(bv->args_[i]);
       if (i != bv->args_.size() - 1)
-        os_ << ", ";
+        os_ << " ";
     }
 
     os_ << ")";
@@ -209,9 +209,9 @@ public:
   void visit(const SymBitVectorIte * const bv) {
     os_ << "(if ";
     (*this)(bv->cond_);
-    os_ << " then ";
+    os_ << " ";
     (*this)(bv->a_);
-    os_ << " else ";
+    os_ << " ";
     (*this)(bv->b_);
     os_ << ")";
   }
