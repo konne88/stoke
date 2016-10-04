@@ -33,14 +33,14 @@ using namespace std;
 using namespace stoke;
 using namespace x64asm;
 
-// auto& input_header = Heading::create("Enumeration options:");
+auto& input_header = Heading::create("Enumeration options:");
 
 // auto& code_arg = ValueArg<Code, CodeReader, CodeWriter>::create("code")
 //                  .description("Input code directly");
 
 // auto& dbg = Heading::create("Formula Printing Options:");
-// auto& only_live_out_arg = FlagArg::create("only_live_outs")
-//                           .description("Only show live out registers");
+auto& arg_lessbits = FlagArg::create("lessbits")
+                          .description("Also output registers/constants with fewer than 32 bits");
 // auto& show_unchanged_arg = FlagArg::create("show_unchanged")
 //                            .description("Show the formula for unchanged registers");
 // auto& use_smtlib_format_arg = FlagArg::create("smtlib_format")
@@ -61,18 +61,19 @@ std::map<x64asm::Type, std::vector<x64asm::Operand>> operands_ = {
 };
 std::map<x64asm::Type, int> operands_idx_ = {
 };
+auto constant = 42;
 x64asm::Operand get_next_operand(x64asm::Type t) {
   if (t == x64asm::Type::IMM_8) {
-    return x64asm::Imm8(0);
+    return x64asm::Imm8(constant);
   }
   if (t == x64asm::Type::IMM_16) {
-    return x64asm::Imm16(0);
+    return x64asm::Imm16(constant);
   }
   if (t == x64asm::Type::IMM_32) {
-    return x64asm::Imm32(0);
+    return x64asm::Imm32(constant);
   }
   if (t == x64asm::Type::IMM_64) {
-    return x64asm::Imm64(0);
+    return x64asm::Imm64(constant);
   }
   if (t == x64asm::Type::AL) {
     return x64asm::Constants::al();
@@ -290,9 +291,6 @@ bool instr_uses_memory(const x64asm::Opcode& opcode) {
 
 // IMM_8,
 // IMM_16,
-// IMM_32,
-// IMM_64,
-// MM,
 // R_8,
 // RH,
 // AL,
@@ -302,22 +300,33 @@ bool instr_uses_memory(const x64asm::Opcode& opcode) {
 // DX,
 // R_32,
 // EAX,
-// R_64,
-// RAX,
+// MM,
 // XMM,
 // XMM_0,
 // YMM
 
-bool want_to_handle(const x64asm::Opcode& opcode) {
+bool want_to_handle(const x64asm::Opcode& opcode, bool lessbits) {
   Instruction instr(opcode);
   for (size_t i = 0; i < instr.arity(); i++) {
     switch (instr.type(i)) {
     case Type::EAX:
     case Type::R_32:
+    case Type::IMM_32:
     case Type::ZERO:
     case Type::ONE:
     case Type::THREE:
       break;
+    case Type::IMM_8:
+    case Type::IMM_16:
+    case Type::R_8:
+    case Type::RH:
+    case Type::AL:
+    case Type::CL:
+    case Type::R_16:
+    case Type::AX:
+    case Type::DX:
+      if (lessbits) break;
+      return false;
     default:
       return false;
     }
@@ -343,7 +352,7 @@ int main(int argc, char** argv) {
     if (instr_uses_label(opcode)) continue; // ignore labels
 
     // we ignore some more instructions for now
-    if (!want_to_handle(opcode)) continue;
+    if (!want_to_handle(opcode, arg_lessbits)) continue;
 
     Instruction instr = get_instruction(opcode);
 
@@ -359,7 +368,9 @@ int main(int argc, char** argv) {
     // assm.start(f);
     // assm.assemble(instr);
 
-    cout << "$compare \"" << instr << "\" \"" << opcode_write_intel(opcode) << "\"" << endl;
+    cout << "$compare \"" << instr << "\"" << endl;
+
+    // cout << "$compare \"" << instr << "\" \"" << opcode_write_intel(opcode) << "\"" << endl;
     // cout << "  assembled instruction:";
     // uint8_t* data = (uint8_t*) f.data();
     // for (size_t i = 0; i < f.size(); i++) {
