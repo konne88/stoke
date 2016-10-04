@@ -40,7 +40,7 @@ auto& input_header = Heading::create("Enumeration options:");
 
 // auto& dbg = Heading::create("Formula Printing Options:");
 auto& arg_lessbits = FlagArg::create("lessbits")
-                          .description("Also output registers/constants with fewer than 32 bits");
+                     .description("Also output registers/constants with fewer than 32 bits");
 // auto& show_unchanged_arg = FlagArg::create("show_unchanged")
 //                            .description("Show the formula for unchanged registers");
 // auto& use_smtlib_format_arg = FlagArg::create("smtlib_format")
