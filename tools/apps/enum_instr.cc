@@ -368,7 +368,7 @@ int main(int argc, char** argv) {
     // assm.start(f);
     // assm.assemble(instr);
 
-    cout << "$compare \"" << instr << "\"" << endl;
+    cout << "$compare '" << instr << "'" << endl;
 
     // cout << "$compare \"" << instr << "\" \"" << opcode_write_intel(opcode) << "\"" << endl;
     // cout << "  assembled instruction:";
