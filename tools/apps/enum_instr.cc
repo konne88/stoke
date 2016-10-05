@@ -343,7 +343,9 @@ int main(int argc, char** argv) {
 
   ComboHandler ch;
 
-  cout << "compare=/src/racket/compare.rkt" << endl << endl;
+  cout << "#!/usr/bin/env bash" << endl << endl;
+
+  cout << "compare=/x86sem/src/racket/compare.rkt" << endl << endl;
 
   for (size_t i = 1; i < X64ASM_NUM_OPCODES; ++i) {
     Opcode opcode = (Opcode)i;
