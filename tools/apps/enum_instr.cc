@@ -370,9 +370,9 @@ int main(int argc, char** argv) {
     // assm.start(f);
     // assm.assemble(instr);
 
-    cout << "$compare '" << instr << "'" << endl;
+    // cout << "$compare '" << instr << "'" << endl;
 
-    // cout << "$compare \"" << instr << "\" \"" << opcode_write_intel(opcode) << "\"" << endl;
+    cout << "$compare '" << instr << "' '" << opcode_write_intel(opcode) << "'" << endl;
     // cout << "  assembled instruction:";
     // uint8_t* data = (uint8_t*) f.data();
     // for (size_t i = 0; i < f.size(); i++) {
