@@ -39,8 +39,15 @@ auto& input_header = Heading::create("Enumeration options:");
 //                  .description("Input code directly");
 
 // auto& dbg = Heading::create("Formula Printing Options:");
-auto& arg_lessbits = FlagArg::create("lessbits")
-                     .description("Also output registers/constants with fewer than 32 bits");
+auto& arg_lessbits = FlagArg::create("no_lessbits")
+                     .description("Don't output registers/constants with fewer than 32 bits");
+auto& arg_n_random = ValueArg<int>::create("n_random")
+  .default_val(0)
+  .description("Number of additional randomly generated instructions per instruction variant.");
+auto& arg_seed = ValueArg<int>::create("seed")
+  .default_val(0)
+  .description("Random number generator seed.");
+
 // auto& show_unchanged_arg = FlagArg::create("show_unchanged")
 //                            .description("Show the formula for unchanged registers");
 // auto& use_smtlib_format_arg = FlagArg::create("smtlib_format")
@@ -335,11 +342,188 @@ bool want_to_handle(const x64asm::Opcode& opcode, bool lessbits) {
 }
 
 
+
+
+vector<Operand> get_determinitic_operands(Type t) {
+  if (t == x64asm::Type::IMM_8) {
+    return { x64asm::Imm8(0), x64asm::Imm8(-1), x64asm::Imm8(48), x64asm::Imm8(-32) };
+  }
+  if (t == x64asm::Type::IMM_16) {
+    return { x64asm::Imm16(0), x64asm::Imm16(-1), x64asm::Imm16(48), x64asm::Imm16(-32) };
+  }
+  if (t == x64asm::Type::IMM_32) {
+    return { x64asm::Imm32(0), x64asm::Imm32(-1), x64asm::Imm32(48), x64asm::Imm32(-32) };
+  }
+  if (t == x64asm::Type::AL) {
+    return { x64asm::Constants::al() };
+  }
+  if (t == x64asm::Type::CL) {
+    return { x64asm::Constants::cl() };
+  }
+  if (t == x64asm::Type::AX) {
+    return { x64asm::Constants::ax() };
+  }
+  if (t == x64asm::Type::DX) {
+    return { x64asm::Constants::dx() };
+  }
+  if (t == x64asm::Type::EAX) {
+    return { x64asm::Constants::eax() };
+  }
+  if (t == x64asm::Type::RAX) {
+    return { x64asm::Constants::rax() };
+  }
+  if (t == x64asm::Type::XMM_0) {
+    return { x64asm::Constants::xmm0() };
+  }
+  if (t == x64asm::Type::ZERO) {
+    return { x64asm::Constants::zero() };
+  }
+  if (t == x64asm::Type::ONE) {
+    return { x64asm::Constants::one() };
+  }
+  if (t == x64asm::Type::THREE) {
+    return { x64asm::Constants::three() };
+  }
+  if (operands_.find(t) == operands_.end()) {
+    std::cout << "ERROR: unsupported operand: " << t << std::endl;
+    exit(1);
+  }
+  return operands_[t];
+}
+
+
+uint64_t interesting_ints[] = {
+  0x0000000000000000,
+  0xFFFFFFFFFFFFFFFF,
+  0x000000000000007F,
+  0x0000000000007FFF,
+  0x000000007FFFFFFF,
+  0x7FFFFFFFFFFFFFFF,
+  0x0000000000000001,
+  0x0000000000000080,
+  0x0000000000008000,
+  0x0000000080000000,
+  0x8000000000000000,
+};
+
+uint64_t get_random_int() {
+  if (rand() % 2 == 0) {
+    return interesting_ints[rand() % 11];
+  }
+  return rand();
+}
+
+
+Operand get_random_operand(Type t) {
+  if (t == x64asm::Type::IMM_8) {
+    return x64asm::Imm8(get_random_int());
+  }
+  if (t == x64asm::Type::IMM_16) {
+    return x64asm::Imm16(get_random_int());
+  }
+  if (t == x64asm::Type::IMM_32) {
+    return x64asm::Imm32(get_random_int());
+  }
+  if (t == x64asm::Type::AL) {
+    return x64asm::Constants::al();
+  }
+  if (t == x64asm::Type::CL) {
+    return x64asm::Constants::cl();
+  }
+  if (t == x64asm::Type::AX) {
+    return x64asm::Constants::ax();
+  }
+  if (t == x64asm::Type::DX) {
+    return x64asm::Constants::dx();
+  }
+  if (t == x64asm::Type::EAX) {
+    return x64asm::Constants::eax();
+  }
+  if (t == x64asm::Type::RAX) {
+    return x64asm::Constants::rax();
+  }
+  if (t == x64asm::Type::XMM_0) {
+    return x64asm::Constants::xmm0();
+  }
+  if (t == x64asm::Type::ZERO) {
+    return x64asm::Constants::zero();
+  }
+  if (t == x64asm::Type::ONE) {
+    return x64asm::Constants::one();
+  }
+  if (t == x64asm::Type::THREE) {
+    return x64asm::Constants::three();
+  }
+  if (operands_.find(t) == operands_.end()) {
+    std::cout << "ERROR: unsupported operand: " << t << std::endl;
+    exit(1);
+  }
+  auto x = operands_[t];
+  return x[rand() % x.size()];
+}
+
+vector<Instruction> get_determinitic_instructions(x64asm::Opcode opc) {
+  operands_idx_ = {};
+  vector<Instruction> instrs;
+
+  Instruction tmp(opc);
+  if (tmp.arity() > 3) exit(1);
+
+  vector<vector<Operand>> ops = { { Constants::zero() }, { Constants::zero() }, { Constants::zero() } };
+
+  auto arity = tmp.arity();
+  for (size_t i = 0; i < arity; i++) {
+    auto t = tmp.type(i);
+    ops[i] = get_determinitic_operands(t);
+  }
+  // cross product of all operands
+  for (auto a : ops[0]) {
+    for (auto b : ops[1]) {
+      for (auto c : ops[2]) {
+        Instruction instr(opc);
+        if (arity > 0) instr.set_operand(0, a);
+        if (arity > 1) instr.set_operand(1, b);
+        if (arity > 2) instr.set_operand(2, c);
+        if (!instr.check()) {
+          std::cout << "instruction not valid:" << instr << std::endl;
+          exit(1);
+        }
+        instrs.push_back(instr);
+      }
+    }
+  }
+
+  return instrs;
+}
+
+Instruction get_random_instructions(x64asm::Opcode opc) {
+  operands_idx_ = {};
+  Instruction instr(opc);
+
+  for (size_t i = 0; i < instr.arity(); i++) {
+    auto t = instr.type(i);
+    instr.set_operand(i, get_random_operand(t));
+  }
+  if (!instr.check()) {
+    std::cout << "instruction not valid:" << instr << std::endl;
+    exit(1);
+  }
+
+  return instr;
+}
+
+void print(Instruction& instr) {
+  cout << "$compare '" << instr << "' '" << opcode_write_intel(instr.get_opcode()) << "'" << endl;
+}
+
+
 int main(int argc, char** argv) {
 
   CommandLineConfig::strict_with_convenience(argc, argv);
   DebugHandler::install_sigsegv();
   DebugHandler::install_sigill();
+
+  srand(arg_seed);
 
   ComboHandler ch;
 
@@ -354,7 +538,7 @@ int main(int argc, char** argv) {
     if (instr_uses_label(opcode)) continue; // ignore labels
 
     // we ignore some more instructions for now
-    if (!want_to_handle(opcode, arg_lessbits)) continue;
+    if (!want_to_handle(opcode, !arg_lessbits)) continue;
 
     Instruction instr = get_instruction(opcode);
 
@@ -365,14 +549,20 @@ int main(int argc, char** argv) {
       continue;
     }
 
+    // print(instr);
+    for (auto i : get_determinitic_instructions(opcode)) {
+      print(i);
+    }
+
+    for (int i = 0; i < arg_n_random; i++) {
+      auto tmp = get_random_instructions(opcode);
+      print(tmp);
+    }
+
     // Assembler assm;
     // Function f;
     // assm.start(f);
     // assm.assemble(instr);
-
-    // cout << "$compare '" << instr << "'" << endl;
-
-    cout << "$compare '" << instr << "' '" << opcode_write_intel(opcode) << "'" << endl;
     // cout << "  assembled instruction:";
     // uint8_t* data = (uint8_t*) f.data();
     // for (size_t i = 0; i < f.size(); i++) {
