@@ -42,11 +42,11 @@ auto& input_header = Heading::create("Enumeration options:");
 auto& arg_lessbits = FlagArg::create("no_lessbits")
                      .description("Don't output registers/constants with fewer than 32 bits");
 auto& arg_n_random = ValueArg<int>::create("n_random")
-  .default_val(0)
-  .description("Number of additional randomly generated instructions per instruction variant.");
+                     .default_val(0)
+                     .description("Number of additional randomly generated instructions per instruction variant.");
 auto& arg_seed = ValueArg<int>::create("seed")
-  .default_val(0)
-  .description("Random number generator seed.");
+                 .default_val(0)
+                 .description("Random number generator seed.");
 
 // auto& show_unchanged_arg = FlagArg::create("show_unchanged")
 //                            .description("Show the formula for unchanged registers");
